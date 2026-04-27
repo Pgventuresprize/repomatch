@@ -21,7 +21,7 @@ import {
   BRAND_ACCENT_TINT,
   BRAND_ACCENT_BORDER,
   PORTAL_COPY,
-} from "../../brand.config";
+} from "../../../brand.config";
 
 // ─────────────────────────────────────────────────────────────────────────────
 
