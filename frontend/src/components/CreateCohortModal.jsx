@@ -2,18 +2,24 @@ import { useState } from "react";
 import { X, Loader, FolderPlus } from "lucide-react";
 import { createCohort } from "../api";
 
-const PROGRAMS = [
-  "Inmersivo Ejecutivo",
-  "Mentoría Grupal",
-  "Bootcamp",
-  "Retiro de Liderazgo",
-  "Summit 30X",
+const EVENT_DAYS = [
+  "Test",
+  "AI SUMMIT 7 may",
+  "AI SUMMIT 8 may",
+];
+
+const STAGES = [
+  "Main Stage",
+  "Industry Stage",
+  "Workshops",
+  "Master Classes 30X",
   "Otro",
 ];
 
 export default function CreateCohortModal({ onClose, onCreated }) {
   const [name, setName] = useState("");
-  const [program, setProgram] = useState("");
+  const [eventDay, setEventDay] = useState("");
+  const [stage, setStage] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -25,8 +31,11 @@ export default function CreateCohortModal({ onClose, onCreated }) {
     try {
       const fd = new FormData();
       fd.append("name", name.trim());
-      if (program) fd.append("program", program);
-      if (description.trim()) fd.append("description", description.trim());
+      // Guardamos "eventDay" en el campo "program" del backend (sin cambiar el backend)
+      if (eventDay) fd.append("program", eventDay);
+      // Guardamos "stage" en description — lo concatenamos si el usuario escribió algo
+      const fullDescription = [stage, description.trim()].filter(Boolean).join(" — ");
+      if (fullDescription) fd.append("description", fullDescription);
       const cohort = await createCohort(fd);
       onCreated(cohort);
       onClose();
@@ -61,30 +70,42 @@ export default function CreateCohortModal({ onClose, onCreated }) {
               autoFocus
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="ej. Inmersivo Ejecutivo Abril 2025"
+              placeholder="ej. AI Summit - Main Stage - 7 may"
               className="w-full bg-x-surface2 border border-x-border rounded-xl px-4 py-2.5 text-sm text-x-text placeholder:text-x-faint outline-none focus:border-lime transition-colors"
             />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-x-muted mb-1.5 uppercase tracking-wider">
-              Tipo de programa
+              Día del evento
             </label>
             <select
-              value={program}
-              onChange={e => setProgram(e.target.value)}
+              value={eventDay}
+              onChange={e => setEventDay(e.target.value)}
               className="w-full bg-x-surface2 border border-x-border rounded-xl px-4 py-2.5 text-sm text-x-text outline-none focus:border-lime transition-colors appearance-none"
             >
-              <option value="">Selecciona un programa...</option>
-              {PROGRAMS.map(p => (
-                <option key={p} value={p}>{p}</option>
+              <option value="">Selecciona un día...</option>
+              {EVENT_DAYS.map(d => (
+                <option key={d} value={d}>{d}</option>
               ))}
             </select>
           </div>
 
-          {error && (
-            <p className="text-red-400 text-xs bg-red-950/30 border border-red-900/40 rounded-lg px-3 py-2">{error}</p>
-          )}
+          <div>
+            <label className="block text-xs font-semibold text-x-muted mb-1.5 uppercase tracking-wider">
+              Escenario
+            </label>
+            <select
+              value={stage}
+              onChange={e => setStage(e.target.value)}
+              className="w-full bg-x-surface2 border border-x-border rounded-xl px-4 py-2.5 text-sm text-x-text outline-none focus:border-lime transition-colors appearance-none"
+            >
+              <option value="">Selecciona un escenario...</option>
+              {STAGES.map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
 
           <div>
             <label className="block text-xs font-semibold text-x-muted mb-1.5 uppercase tracking-wider">
@@ -98,6 +119,10 @@ export default function CreateCohortModal({ onClose, onCreated }) {
               className="w-full bg-x-surface2 border border-x-border rounded-xl px-4 py-2.5 text-sm text-x-text placeholder:text-x-faint outline-none focus:border-lime transition-colors resize-none"
             />
           </div>
+
+          {error && (
+            <p className="text-red-400 text-xs bg-red-950/30 border border-red-900/40 rounded-lg px-3 py-2">{error}</p>
+          )}
         </div>
 
         <div className="flex gap-3 p-6 border-t border-x-border">
