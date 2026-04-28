@@ -11,7 +11,7 @@ Los participantes suben una selfie y descargan automáticamente todas las fotos 
 |------|-----------|
 | Backend | FastAPI + DeepFace (ArcFace) |
 | Frontend | React + Vite + Tailwind CSS |
-| Almacenamiento | Sistema de archivos local (JSON + imágenes) |
+| Almacenamiento | Sistema de archivos local (JSON + imágenes) | 
 
 ---
 
