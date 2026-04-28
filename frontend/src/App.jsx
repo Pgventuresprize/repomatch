@@ -19,7 +19,7 @@ import {
   BRAND_LOGO_URL,
   BRAND_LOGO_ALT,
   ADMIN_COPY,
-} from "../../../brand.config";
+} from "../../brand.config";
  
 // ─────────────────────────────────────────────────────────────────────────────
  
