@@ -47,6 +47,11 @@ csv_import_jobs: dict = {}
 TEMP_DIR = STORAGE_BASE / "temp"
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
+
+@app.get("/")
+async def root():
+    return {"ok": True, "service": "facematch-30x"}
+
 # ── Auth middleware ────────────────────────────────────────────────
 # Routes accessible without a key (participant portal + health check)
 _PUBLIC_RE = re.compile(
