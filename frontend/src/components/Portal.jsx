@@ -75,7 +75,7 @@ function BrandLogo({ className = "h-7" }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // LANDING
 // ─────────────────────────────────────────────────────────────────────────────
-function Landing() {
+function Landing({ go }) {
   const [cohorts, setCohorts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -86,14 +86,14 @@ function Landing() {
   }, []);
 
   const goToCohort = (cohortId) => {
-    window.location.hash = `#portal/${cohortId}`;
+    go(`/portal/${encodeURIComponent(cohortId)}`);
   };
 
   return (
     <div style={{ minHeight: "100vh", background: "#0a0a0a", color: "#fafafa" }} className="flex flex-col">
 
       <header style={{ borderBottom: "1px solid #2d2d2d", background: "#0a0a0a" }} className="sticky top-0 z-10">
-        <div className="max-w-xl mx-auto px-5 h-14 flex items-center">
+        <div className="max-w-xl mx-auto px-5 h-14 flex items-center justify-center">
           <BrandLogo className="h-7" />
         </div>
       </header>
@@ -246,7 +246,7 @@ function Landing() {
 // ─────────────────────────────────────────────────────────────────────────────
 // COHORT PORTAL
 // ─────────────────────────────────────────────────────────────────────────────
-function CohortPortal({ cohortId }) {
+function CohortPortal({ cohortId, go }) {
   const [cohortInfo, setCohortInfo]     = useState(null);
   const [loadingInfo, setLoadingInfo]   = useState(true);
   const [infoError, setInfoError]       = useState(null);
@@ -353,7 +353,7 @@ function CohortPortal({ cohortId }) {
     }
   };
 
-  const goBackToLanding = () => { window.location.hash = "#portal"; };
+  const goBackToLanding = () => { go("/"); };
 
   const topBar = (title, subtitle, onBack) => (
     <header style={{ borderBottom: "1px solid #2d2d2d", background: "#0a0a0a" }} className="sticky top-0 z-10">
@@ -655,7 +655,13 @@ function CohortPortal({ cohortId }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ROOT EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Portal({ cohortId }) {
-  if (!cohortId) return <Landing />;
-  return <CohortPortal cohortId={cohortId} />;
+export default function Portal({ cohortId, go: goProp }) {
+  const go = goProp || ((path) => {
+    if (window.location.pathname === path) return;
+    window.history.pushState({}, "", path);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+
+  if (!cohortId) return <Landing go={go} />;
+  return <CohortPortal cohortId={cohortId} go={go} />;
 }

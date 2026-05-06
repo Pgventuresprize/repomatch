@@ -23,11 +23,37 @@ import {
  
 // ─────────────────────────────────────────────────────────────────────────────
  
-function getPortalCohortId() {
-  const hash = window.location.hash;
-  if (hash === "#portal") return "";
-  if (hash.startsWith("#portal/")) return hash.slice("#portal/".length);
-  return null;
+function parseRoute() {
+  const { pathname, hash } = window.location;
+
+  // Back-compat: old hash routes → new path routes.
+  // - /#portal          → /
+  // - /#portal/:id      → /portal/:id
+  if (hash === "#portal") {
+    window.history.replaceState({}, "", "/");
+  } else if (hash.startsWith("#portal/")) {
+    const cohortId = hash.slice("#portal/".length);
+    window.history.replaceState({}, "", `/portal/${encodeURIComponent(cohortId)}`);
+  }
+
+  const path = window.location.pathname || "/";
+  if (path === "/admin" || path.startsWith("/admin/")) return { view: "admin" };
+
+  const portalPrefix = "/portal/";
+  if (path === "/portal") return { view: "portal", cohortId: "" };
+  if (path.startsWith(portalPrefix)) {
+    const cohortId = decodeURIComponent(path.slice(portalPrefix.length));
+    return { view: "portal", cohortId };
+  }
+
+  // Default for users: portal landing on "/"
+  return { view: "portal", cohortId: "" };
+}
+
+function go(path) {
+  if (window.location.pathname === path) return;
+  window.history.pushState({}, "", path);
+  window.dispatchEvent(new PopStateEvent("popstate"));
 }
  
 const TABS = [
@@ -107,7 +133,7 @@ function AdminLock({ onUnlock }) {
  
 // ── App principal ─────────────────────────────────────────────────────────────
 export default function App() {
-  const [portalCohortId, setPortalCohortId] = useState(getPortalCohortId);
+  const [route, setRoute] = useState(() => parseRoute());
   const [tab, setTab]                       = useState("cohorts");
   const [selectedCohort, setSelectedCohort] = useState(null);
   const [participants, setParticipants]     = useState([]);
@@ -120,9 +146,11 @@ export default function App() {
   const [adminKey, setAdminKey]         = useState(() => localStorage.getItem("adminKey") || "");
  
   useEffect(() => {
-    const handleHash = () => setPortalCohortId(getPortalCohortId());
-    window.addEventListener("hashchange", handleHash);
-    return () => window.removeEventListener("hashchange", handleHash);
+    const handleRoute = () => setRoute(parseRoute());
+    window.addEventListener("popstate", handleRoute);
+    // Also run once on mount in case parseRoute did a back-compat replace.
+    handleRoute();
+    return () => window.removeEventListener("popstate", handleRoute);
   }, []);
  
   useEffect(() => {
@@ -132,7 +160,7 @@ export default function App() {
   }, []);
  
   useEffect(() => {
-    if (portalCohortId !== null) return;
+    if (route.view !== "admin") return;
     let attempts = 0;
     const check = () => {
       api.get("/api/health")
@@ -144,7 +172,7 @@ export default function App() {
         });
     };
     check();
-  }, [portalCohortId]);
+  }, [route.view]);
  
   const loadParticipants = async () => {
     setLoading(true);
@@ -155,7 +183,7 @@ export default function App() {
  
   useEffect(() => { loadParticipants(); }, []);
  
-  if (portalCohortId !== null) return <Portal cohortId={portalCohortId || null} />;
+  if (route.view === "portal") return <Portal cohortId={route.cohortId || null} go={go} />;
   if (authRequired === null)   return <div className="min-h-screen bg-x-bg" />;
   if (authRequired && !adminKey) return <AdminLock onUnlock={() => setAdminKey(localStorage.getItem("adminKey") || "")} />;
  

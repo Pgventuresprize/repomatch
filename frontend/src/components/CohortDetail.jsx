@@ -73,7 +73,7 @@ async function expandSnapshot({ entries, flatFiles }) {
 
 function ShareModal({ onClose, cohort }) {
   const [copied, setCopied] = useState(false);
-  const url = `${window.location.origin}${window.location.pathname}#portal/${cohort.id}`;
+  const url = `${window.location.origin}/portal/${encodeURIComponent(cohort.id)}`;
   const copy = () => {
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
